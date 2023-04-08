@@ -4,8 +4,7 @@ namespace HelloWebSocketService
 {
     public class StringEncoder
     {
-        public static async Task<(WebSocketReceiveResult result, string? message)>
-        ReceiveAsync(WebSocket socket)
+        public static async Task<(WebSocketReceiveResult result, string? message)> ReceiveAsync(WebSocket socket)
         {
             var buffer = new byte[1024 * 4];
             var result = await socket.ReceiveAsync(buffer: new
