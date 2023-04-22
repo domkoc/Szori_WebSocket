@@ -29,10 +29,7 @@ namespace WebSocket_FIBRPN
             var message = JsonSerializer.Serialize(operation);
             var buffer = new ArraySegment<byte>(Encoding.ASCII.GetBytes(message), 0,
             message.Length);
-            await socket.SendAsync(buffer: buffer,
-            messageType: WebSocketMessageType.Text,
-            endOfMessage: true,
-            cancellationToken: CancellationToken.None);
+            await socket.SendAsync(buffer: buffer, messageType: WebSocketMessageType.Text, endOfMessage: true, cancellationToken: CancellationToken.None);
         }
     }
 }

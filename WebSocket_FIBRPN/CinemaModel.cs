@@ -5,7 +5,7 @@
 
         private static CinemaModel? _instance = null;
         private static readonly object padlock = new();
-        public List<CinemaRow> cinemaRows = new();
+        public List<CinemaRow> CinemaRows = new();
 
         CinemaModel(){}
 
@@ -24,17 +24,15 @@
             }
         }
 
-        public bool InitRoom(int rows, int columns)
+        public void InitRoom(int rows, int columns)
         {
-            if (rows < 1 || columns < 1) return false;
             lock (padlock)
             {
-                this.cinemaRows = new List<CinemaRow>();
+                this.CinemaRows = new List<CinemaRow>();
                 for (int i = 1; i <= rows; i++)
                 {
-                    this.cinemaRows.Add(new CinemaRow(i, columns));
+                    this.CinemaRows.Add(new CinemaRow(i, columns));
                 }
-                return true;
             }
         }
 
@@ -47,13 +45,13 @@
         {
             lock (padlock)
             {
-                return new RoomSize { rows = this.cinemaRows.Count, columns = this.cinemaRows[0].seats.Count };
+                return new RoomSize { rows = this.CinemaRows.Count, columns = this.CinemaRows[0].seats.Count };
             }
         }
 
         public SeatStatus GetSeatStatus(int row, int column)
         {
-            return this.cinemaRows[row - 1].seats[column - 1].GetSeatStatus();
+            return this.CinemaRows[row - 1].seats[column - 1].GetSeatStatus();
         }
 
         public struct LockedSeat
@@ -63,13 +61,13 @@
         }
         public LockedSeat? LockSeat(int row, int column)
         {
-            var lockId = this.cinemaRows[row - 1].seats[column - 1].LockSeat();
+            var lockId = this.CinemaRows[row - 1].seats[column - 1].LockSeat();
             return lockId == null ? null : new LockedSeat { seatStatus = SeatStatus.Locked, lockid = lockId};
         }
 
         public SeatStatus? UnlockSeat(string lockid)
         {
-            foreach (CinemaRow row in this.cinemaRows)
+            foreach (CinemaRow row in this.CinemaRows)
             {
                 foreach (CinemaSeat seat in row.seats)
                 {
@@ -85,7 +83,7 @@
 
         public SeatStatus? ReserveSeat(string lockid)
         {
-            foreach (CinemaRow row in this.cinemaRows)
+            foreach (CinemaRow row in this.CinemaRows)
             {
                 foreach (CinemaSeat seat in row.seats)
                 {
@@ -101,7 +99,7 @@
     }
     public class CinemaRow
     {
-        private int RowNumber;
+        public int RowNumber;
         public List<CinemaSeat> seats;
         private readonly object padlock = new();
 

@@ -1,10 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Data.Common;
 using System.Net.WebSockets;
+using static WebSocket_FIBRPN.CinemaModel;
+
 namespace WebSocket_FIBRPN
 {
     [Route("WebSocket_FIBRPN/cinema")]
     public class HelloEndpoint
     {
+        private static CinemaModel Cinema = CinemaModel.Instance;
+
         public async Task Open(WebSocket socket)
         {
             Console.WriteLine("WebSocket opened.");
@@ -15,19 +20,128 @@ namespace WebSocket_FIBRPN
             Console.WriteLine("WebSocket closed.");
         }
 
-        public async Task Error(WebSocket socket, Exception ex)
+        public async Task SendError(WebSocket socket, string message)
         {
-            Console.WriteLine("WebSocket error: " + ex.Message);
+            await StringJsonEncoder.SendAsync(socket, Operation.Error(message));
         }
 
-        public async Task<Operation> Message(WebSocket socket, Operation operation)
+        public async Task<Operation> InvalidOperationMessage(WebSocket socket, Operation operation)
         {
-            Console.WriteLine($"WebSocket message: {operation}");
-            if (operation is not null)
+            return Operation.Error("Invalid operation.");
+        }
+
+        public async Task InitRoom(WebSocket socket, Operation operation)
+        {
+            if (operation.Rows is null || operation.Columns is null)
             {
-                await StringJsonEncoder.SendAsync(socket, operation);
+                await SendError(socket, "No row or column number.");
             }
-            return operation;
+            else if (operation.Rows.Value < 1 || operation.Columns.Value < 1)
+            {
+                await SendError(socket, "Invalid row or column number.");
+            }
+            else
+            {
+                Cinema.InitRoom(operation.Rows.Value, operation.Columns.Value);
+            }
+        }
+
+        public async Task<Operation> GetRoomSize()
+        {
+            var roomSize = Cinema.GetRoomSize();
+            return Operation.RoomSize(roomSize.rows, roomSize.columns);
+        }
+
+        public async Task UpdateSeats(WebSocket socket)
+        {
+            foreach (CinemaRow row in Cinema.CinemaRows)
+            {
+                foreach (CinemaSeat seat in row.seats)
+                {
+                    await StringJsonEncoder.SendAsync(socket, Operation.SeatStatus(row.RowNumber, seat.ColumnNumber, seat.GetSeatStatus()));
+                }
+            }
+        }
+
+        public async Task<Operation?> LockSeat(WebSocket socket, Operation operation)
+        {
+            var roomSize = Cinema.GetRoomSize();
+            if (operation.Row is null || operation.Column is null)
+            {
+                await SendError(socket, "No row or column number.");
+                return null;
+            }
+            else if (operation.Row.Value < 1 || operation.Row.Value > roomSize.rows || operation.Column.Value < 1 || operation.Column.Value > roomSize.columns)
+            {
+                await SendError(socket, "Invalid row or column number.");
+                return null;
+            }
+            else
+            {
+                if (Cinema.GetSeatStatus(operation.Row.Value, operation.Column.Value) != SeatStatus.Free)
+                {
+                    await SendError(socket, "Seat is not free.");
+                    return null;
+                }
+                else
+                {
+                    CinemaModel.LockedSeat? lockedSeat = Cinema.LockSeat(operation.Row.Value, operation.Column.Value);
+                    if (lockedSeat == null)
+                    {
+                        await SendError(socket, "Unable to lock seat.");
+                        return null;
+                    }
+                    else
+                    {
+                        await StringJsonEncoder.SendAsync(socket, new Operation { Type = Command.LockResult, LockId = lockedSeat.Value.lockid });
+                        return Operation.SeatStatus(operation.Row.Value, operation.Column.Value, lockedSeat.Value.seatStatus);
+                    }
+                }
+            }
+        }
+        
+        public async Task<Operation?> UnlockSeat(WebSocket socket, Operation operation)
+        {
+            if (operation.LockId is null)
+            {
+                await SendError(socket, "No lock id.");
+                return null;
+            }
+            else
+            {
+                var seatStatus = Cinema.UnlockSeat(operation.LockId);
+                if (seatStatus == null)
+                {
+                    await SendError(socket, "Unable to free lock.");
+                    return null;
+                }
+                else
+                {
+                    return Operation.SeatStatus(operation.Row.Value, operation.Column.Value, seatStatus.Value);
+                }
+            }
+        }
+
+        public async Task<Operation?> ReserveSeat(WebSocket socket, Operation operation)
+        {
+            if (operation.LockId is null)
+            {
+                await SendError(socket, "No lock id.");
+                return null;
+            }
+            else
+            {
+                var seatStatus = Cinema.ReserveSeat(operation.LockId);
+                if (seatStatus == null)
+                {
+                    await SendError(socket, "Unable to reserve seat.");
+                    return null;
+                }
+                else
+                {
+                    return Operation.SeatStatus(operation.Row.Value, operation.Column.Value, seatStatus.Value);
+                }
+            }
         }
     }
 }
