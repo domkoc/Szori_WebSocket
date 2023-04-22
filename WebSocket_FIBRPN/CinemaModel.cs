@@ -45,6 +45,10 @@
         {
             lock (padlock)
             {
+                if (this.CinemaRows.Count == 0)
+                {
+                    return new RoomSize { rows = 0, columns = 0 };
+                }
                 return new RoomSize { rows = this.CinemaRows.Count, columns = this.CinemaRows[0].seats.Count };
             }
         }
