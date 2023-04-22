@@ -3,39 +3,24 @@ using System.Text.Json.Serialization;
 
 namespace WebSocket_FIBRPN
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum SeatStatus
     {
-        [JsonPropertyName("free")]
         Free,
-        [JsonPropertyName("reserved")]
         Reserved,
-        [JsonPropertyName("locked")]
         Locked,
     }
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Command
     {
-        [JsonPropertyName("initRoom")]
         InitRoom,
-        [JsonPropertyName("getRoomSize")]
         GetRoomSize,
-        [JsonPropertyName("updateSeats")]
         UpdateSeats,
-        [JsonPropertyName("lockSeat")]
         LockSeat,
-        [JsonPropertyName("unlockSeat")]
         UnlockSeat,
-        [JsonPropertyName("reserveSeat")]
         ReserveSeat,
-        [JsonPropertyName("roomSize")]
         RoomSize,
-        [JsonPropertyName("seatStatus")]
         SeatStatus,
-        [JsonPropertyName("lockResult")]
         LockResult,
-        [JsonPropertyName("error")]
         Error
     }
 
@@ -107,13 +92,13 @@ namespace WebSocket_FIBRPN
             var sb = new StringBuilder();
 
             sb.Append("{\n");
-            sb.Append($"\t\"type\": \"{Type.ToString().ToLower()}\",\n");
+            sb.Append($"\t\"type\": \"{Type}\",\n");
             if (Row != null) sb.Append($"\t\"row\": {Row},\n");
             if (Rows != null) sb.Append($"\t\"rows\": {Rows},\n");
             if (Column != null) sb.Append($"\t\"column\": {Column},\n");
             if (Columns != null) sb.Append($"\t\"columns\": {Columns},\n");
             if (LockId != null) sb.Append($"\t\"lockId\": \"{LockId}\",\n");
-            if (Status != null) sb.Append($"\t\"status\": \"{Status.ToString().ToLower()}\",\n");
+            if (Status != null) sb.Append($"\t\"status\": \"{Status}\",\n");
             if (Message != null) sb.Append($"\t\"message\": \"{Message}\"\n,");
             sb.Append("}\n");
 

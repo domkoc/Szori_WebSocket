@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Data.Common;
 using System.Net.WebSockets;
 using static WebSocket_FIBRPN.CinemaModel;
 
 namespace WebSocket_FIBRPN
 {
     [Route("WebSocket_FIBRPN/cinema")]
-    public class HelloEndpoint
+    public class CinemaEndpoint
     {
         private static CinemaModel Cinema = CinemaModel.Instance;
 
@@ -109,15 +108,15 @@ namespace WebSocket_FIBRPN
             }
             else
             {
-                var seatStatus = Cinema.UnlockSeat(operation.LockId);
-                if (seatStatus == null)
+                var unlockedSeat = Cinema.UnlockSeat(operation.LockId);
+                if (unlockedSeat == null)
                 {
                     await SendError(socket, "Unable to free lock.");
                     return null;
                 }
                 else
                 {
-                    return Operation.SeatStatus(operation.Row.Value, operation.Column.Value, seatStatus.Value);
+                    return Operation.SeatStatus(unlockedSeat.Value.row, unlockedSeat.Value.column, unlockedSeat.Value.seatStatus);
                 }
             }
         }
@@ -126,20 +125,20 @@ namespace WebSocket_FIBRPN
         {
             if (operation.LockId is null)
             {
-                await SendError(socket, "No lock id.");
+                // await SendError(socket, "No lock id.");
                 return null;
             }
             else
             {
-                var seatStatus = Cinema.ReserveSeat(operation.LockId);
-                if (seatStatus == null)
+                var reservedSeat = Cinema.ReserveSeat(operation.LockId);
+                if (reservedSeat == null)
                 {
                     await SendError(socket, "Unable to reserve seat.");
                     return null;
                 }
                 else
                 {
-                    return Operation.SeatStatus(operation.Row.Value, operation.Column.Value, seatStatus.Value);
+                    return Operation.SeatStatus(reservedSeat.Value.row, reservedSeat.Value.column, reservedSeat.Value.seatStatus);
                 }
             }
         }

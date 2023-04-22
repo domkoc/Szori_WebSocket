@@ -5,9 +5,9 @@ namespace WebSocket_FIBRPN
     public class WebSocketMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly HelloEndpoint _server;
+        private readonly CinemaEndpoint _server;
         private List<WebSocket> OpenedSockets = new();
-        public WebSocketMiddleware(RequestDelegate next, HelloEndpoint server)
+        public WebSocketMiddleware(RequestDelegate next, CinemaEndpoint server)
         {
             _next = next;
             _server = server;

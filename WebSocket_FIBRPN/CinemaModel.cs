@@ -65,7 +65,13 @@
             return lockId == null ? null : new LockedSeat { seatStatus = SeatStatus.Locked, lockid = lockId};
         }
 
-        public SeatStatus? UnlockSeat(string lockid)
+        public struct SeatStatusValue
+        {
+            public int row;
+            public int column;
+            public SeatStatus seatStatus;
+        }
+        public SeatStatusValue? UnlockSeat(string lockid)
         {
             foreach (CinemaRow row in this.CinemaRows)
             {
@@ -74,14 +80,14 @@
                     if (seat.Lockid == lockid)
                     {
                         seat.UnlockSeat();
-                        return seat.GetSeatStatus();
+                        return new SeatStatusValue { row = row.RowNumber, column = seat.ColumnNumber, seatStatus = seat.GetSeatStatus() };
                     }
                 }
             }
             return null;
         }
 
-        public SeatStatus? ReserveSeat(string lockid)
+        public SeatStatusValue? ReserveSeat(string lockid)
         {
             foreach (CinemaRow row in this.CinemaRows)
             {
@@ -90,7 +96,7 @@
                     if (seat.Lockid == lockid)
                     {
                         seat.ReserveSeat();
-                        return seat.GetSeatStatus();
+                        return new SeatStatusValue { row = row.RowNumber, column = seat.ColumnNumber, seatStatus = seat.GetSeatStatus() };
                     }
                 }
             }
