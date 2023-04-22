@@ -5,8 +5,8 @@ namespace WebSocket_FIBRPN
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum SeatStatus
     {
-        [JsonPropertyName("available")]
-        Available,
+        [JsonPropertyName("free")]
+        Free,
         [JsonPropertyName("reserved")]
         Reserved,
         [JsonPropertyName("locked")]
